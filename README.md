@@ -58,6 +58,8 @@ logger:
     custom_components.custom_updater: debug
 ```
 
+***
+
 ## Services
 
 If you are not using the Lovelace UI or **our recommended [tracker-card](https://github.com/custom-cards/tracker-card)** for it,\
