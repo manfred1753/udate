@@ -1,7 +1,7 @@
 # Custom Updater
 
 A component which allows you to track and update your custom cards and components.\
-**To get the best use for this component, use it together with the [tracker-card](https://github.com/custom-cards/tracker-card)**
+**To get the best use for this component, use it together with the [tracker-card](https://github.com/custom-cards/tracker-card)**.
 
 ## ⚠️ This will **ONLY** work if your components and/or cards/elements is from
 
@@ -43,8 +43,8 @@ custom_updater:
 
 | key | default | required | description
 | --- | --- | --- | ---
-| **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`
-| **hide_sensor** | Flase | no | Option to set the sensors to be `hidden`, possible values are `True` / `False`
+| **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`.
+| **hide_sensor** | `false` | no | Option to set the sensors to be `hidden`, possible values are `true`/`false`.
 
 ***
 
