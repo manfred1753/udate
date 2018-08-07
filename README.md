@@ -45,6 +45,7 @@ custom_updater:
 | --- | --- | --- | ---
 | **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`
 | **hide_sensor** | False | no | Option to set the sensors to be `hidden`, possible values are `True` / `False`
+| **lovelace_gen** | False | no | Set this to `True` if you use [lovelace-gen](https://github.com/thomasloven/homeassistant-lovelace-gen), possible values are `True` / `False`
 
 ***
 

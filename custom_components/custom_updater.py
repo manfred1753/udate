@@ -21,6 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_TRACK = 'track'
 CONF_HIDE_SENSOR = 'hide_sensor'
+CONF_LOVELACE_GEN = 'lovelace_gen'
 
 DOMAIN = 'custom_updater'
 CARD_DATA = 'custom_card_data'
@@ -35,6 +36,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_TRACK, default=None):
             vol.All(cv.ensure_list, [cv.string]),
         vol.Optional(CONF_HIDE_SENSOR, default=False): cv.boolean,
+        vol.Optional(CONF_LOVELACE_GEN, default=False): cv.boolean,
     })
 }, extra=vol.ALLOW_EXTRA)
 
@@ -45,12 +47,13 @@ def setup(hass, config):
     """Set up this component."""
     conf_track = config[DOMAIN][CONF_TRACK]
     conf_hide_sensor = config[DOMAIN][CONF_HIDE_SENSOR]
+    lovelace_gen = config[DOMAIN][CONF_LOVELACE_GEN]
     _LOGGER.info('version %s is starting, if you have ANY issues with this, please report'
                  ' them here: https://github.com/custom-components/custom_updater', __version__)
 
     ha_conf_dir = str(hass.config.path())
     if not conf_track or 'cards' in conf_track:
-        card_controller = CustomCards(hass, ha_conf_dir, conf_hide_sensor)
+        card_controller = CustomCards(hass, ha_conf_dir, conf_hide_sensor, lovelace_gen)
         track_time_interval(hass, card_controller.cache_versions, INTERVAL)
     if not conf_track or 'components' in conf_track:
         components_controller = CustomComponents(hass, ha_conf_dir, conf_hide_sensor)
@@ -89,10 +92,11 @@ def setup(hass, config):
 
 class CustomCards:
     """Custom cards controller."""
-    def __init__(self, hass, ha_conf_dir, conf_hide_sensor):
+    def __init__(self, hass, ha_conf_dir, conf_hide_sensor, lovelace_gen):
         self.hass = hass
         self.cards = None
         self._hide_sensor = conf_hide_sensor
+        self._lovelace_gen = lovelace_gen
         self.ha_conf_dir = ha_conf_dir
         self.hass.data[CARD_DATA] = {}
         self.cache_versions('now')
@@ -166,16 +170,30 @@ class CustomCards:
         _LOGGER.debug('Updating configuration for %s', card)
         sedcmd = 's/\/'+ card + '.js?v=' + str(localversion) + '/\/'+ card + '.js?v=' + str(remoteversion) + '/'
         _LOGGER.debug('Upgrading card in config from version %s to version %s', localversion, remoteversion)
-        subprocess.call(["sed", "-i", "-e", sedcmd, self.ha_conf_dir + '/ui-lovelace.yaml'])
+        if self._lovelace_gen:
+            conf_file = self.ha_conf_dir + '/local/lovelace/main.yaml'
+        else:
+            conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
+        subprocess.call(["sed", "-i", "-e", sedcmd, conf_file])
 
     def get_card_dir(self, card):
         """Get card dir"""
-        with open(self.ha_conf_dir + '/ui-lovelace.yaml', 'r') as local:
+        if self._lovelace_gen:
+            conf_file = self.ha_conf_dir + '/local/lovelace/main.yaml'
+        else:
+            conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
+        with open(conf_file, 'r') as local:
             for line in local.readlines():
-                if '/' + card + '.js' in line:
-                    card_dir = line.split(': ')[1].split(card + '.js')[0].replace("local", "www")
-                    _LOGGER.debug('Found path "%s" for card "%s"', card_dir, card)
-                    break
+                if self._lovelace_gen:
+                    if card + '.js' in line:
+                        card_dir = self.ha_conf_dir + '/local/lovelace/' + line.split('!resource ')[1].split(card + '.js')[0]
+                        _LOGGER.debug('Found path "%s" for card "%s"', card_dir, card)
+                        break
+                else:
+                    if '/' + card + '.js' in line:
+                        card_dir = line.split(': ')[1].split(card + '.js')[0].replace("local", "www")
+                        _LOGGER.debug('Found path "%s" for card "%s"', card_dir, card)
+                        break
         return card_dir
 
     def get_remote_info(self, card):
