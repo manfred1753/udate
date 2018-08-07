@@ -221,7 +221,7 @@ class CustomCards:
         """Return the local version if any."""
         cardconfig = ''
         if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/www/lovelace/main.yaml'
+            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
         else:
             conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
         with open(conf_file, 'r') as local:
