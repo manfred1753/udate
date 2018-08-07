@@ -170,7 +170,7 @@ class CustomCards:
         _LOGGER.debug('Updating configuration for %s', card)
         _LOGGER.debug('Upgrading card in config from version %s to version %s', localversion, remoteversion)
         if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/www/lovelace/main.yaml'
+            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
             sedcmd = 's/'+ card + '.js?v=' + str(localversion) + '/'+ card + '.js?v=' + str(remoteversion) + '/'
         else:
             conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
@@ -180,14 +180,14 @@ class CustomCards:
     def get_card_dir(self, card):
         """Get card dir"""
         if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/www/lovelace/main.yaml'
+            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
         else:
             conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
         with open(conf_file, 'r') as local:
             for line in local.readlines():
                 if self._lovelace_gen:
                     if card + '.js' in line:
-                        card_dir = '/www/lovelace/' + line.split('!resource ')[1].split(card + '.js')[0]
+                        card_dir = '/lovelace/' + line.split('!resource ')[1].split(card + '.js')[0]
                         _LOGGER.debug('Found path "%s" for card "%s"', card_dir, card)
                         break
                 else:
