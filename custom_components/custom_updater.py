@@ -13,6 +13,7 @@ import time
 import requests
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
+from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_time_interval
 
 __version__ = '1.4.1'
@@ -30,21 +31,19 @@ INTERVAL = timedelta(days=1)
 ATTR_CARD = 'card'
 ATTR_COMPONENT = 'component'
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
-        vol.Required(CONF_TRACK, default=None):
-            vol.All(cv.ensure_list, [cv.string]),
-        vol.Optional(CONF_HIDE_SENSOR, default=False): cv.boolean,
-    })
-}, extra=vol.ALLOW_EXTRA)
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_TRACK, default=None):
+        vol.All(cv.ensure_list, [cv.string]),
+    vol.Optional(CONF_HIDE_SENSOR, default=False): cv.boolean,
+})
 
 CARDS_JSON = 'https://raw.githubusercontent.com/custom-cards/information/master/repos.json'
 COMPS_JSON = 'https://raw.githubusercontent.com/custom-components/information/master/repos.json'
 
 def setup(hass, config):
     """Set up this component."""
-    conf_track = config[DOMAIN][CONF_TRACK]
-    conf_hide_sensor = config[DOMAIN][CONF_HIDE_SENSOR]
+    conf_track = config.get(CONF_TRACK)
+    conf_hide_sensor = config.get(CONF_HIDE_SENSOR)
     _LOGGER.info('version %s is starting, if you have ANY issues with this, please report'
                  ' them here: https://github.com/custom-components/custom_updater', __version__)
 
