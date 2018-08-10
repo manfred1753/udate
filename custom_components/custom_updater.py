@@ -60,11 +60,11 @@ def setup(hass, config):
     def check_all_service(call):
         """Set up service for manual trigger."""
         if not conf_track or 'cards' in conf_track:
-            card_controller.cache_versions(call)
+            card_controller.cache_versions()
         if not conf_track or 'components' in conf_track:
-            components_controller.cache_versions(call)
+            components_controller.cache_versions()
 
-    def update_all_service(call):
+    def update_all_service():
         """Set up service for manual trigger."""
         if not conf_track or 'cards' in conf_track:
             card_controller.update_all()
@@ -98,7 +98,7 @@ class CustomCards:
         self.ha_conf_dir = ha_conf_dir
         self.hass.data[CARD_DATA] = {}
         self.lovelace_gen_check()
-        self.cache_versions('now')
+        self.cache_versions()
 
     def lovelace_gen_check(self):
         """Check if lovelace-gen is in use"""
@@ -114,7 +114,7 @@ class CustomCards:
         else:
             self._lovelace_gen = False
 
-    def cache_versions(self, call):
+    def cache_versions(self):
         """Cache"""
         self.cards = self.get_cards()
         self.hass.data[CARD_DATA] = {}
@@ -225,7 +225,6 @@ class CustomCards:
                               ]
             except:
                 _LOGGER.debug('Gathering remote info for %s failed...', card)
-                remote = False
         else:
             _LOGGER.debug('Could not get remote info for %s', card)
         return remote_info
@@ -276,9 +275,9 @@ class CustomComponents:
         self._hide_sensor = conf_hide_sensor
         self.ha_conf_dir = ha_conf_dir
         self.hass.data[COMPONENT_DATA] = {}
-        self.cache_versions('now')
+        self.cache_versions()
 
-    def cache_versions(self, call):
+    def cache_versions(self):
         """Cache"""
         self.components = self.get_components()
         self.hass.data[COMPONENT_DATA] = {}
@@ -367,7 +366,6 @@ class CustomComponents:
                               ]
             except:
                 _LOGGER.debug('Gathering remote info for %s failed...', component)
-                remote = False
         else:
             _LOGGER.debug('Could not get remote info for %s', component)
         return remote_info
