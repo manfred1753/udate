@@ -8,10 +8,12 @@ https://github.com/custom-components/custom_updater
 import logging
 import os
 import subprocess
-from datetime import timedelta
 import time
+from datetime import timedelta
+
 import requests
 import voluptuous as vol
+
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_time_interval
