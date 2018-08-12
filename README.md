@@ -9,7 +9,6 @@ A component which allows you to track and update your custom cards and component
 
 Install this component by copying `/custom_components/custom_updater.py` from this repo to `<config directory>/custom_components/custom_updater.py` on your Home Assistant instanse.
 
-
 ### Step 2
 
 Add this to your `configuration.yaml`
@@ -22,10 +21,17 @@ custom_updater:
 
 | key | default | required | description
 | --- | --- | --- | ---
-| **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`
-| **hide_sensor** | False | no | Option to set the sensors to be `hidden`, possible values are `True` / `False`
-| **card_urls** | Empty | no | A list of urls to json with card info
-| **component_urls** | Empty | no | A list of urls to json with component info
+| **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`.
+| **hide_sensor** | False | no | Option to set the sensors to be `hidden`, possible values are `True` / `False`.
+| **card_urls** | Empty | no | A list of additional urls to json with card info.
+| **component_urls** | Empty | no | A list of additional urls to json with component info.
+
+The component uses these json files to check for updates by default:
+
+- https://raw.githubusercontent.com/custom-cards/information/master/repos.json
+- https://raw.githubusercontent.com/custom-components/information/master/repos.json
+
+Use the `card_urls` and `component_urls` options in the configuration to add more.
 
 ***
 
