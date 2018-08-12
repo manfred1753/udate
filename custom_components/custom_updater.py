@@ -10,13 +10,12 @@ import os
 import subprocess
 import time
 from datetime import timedelta
-
-import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import track_time_interval
 
-__version__ = '1.4.1'
+__version__ = '2.0.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ def setup(hass, config):
         if not conf_track or 'components' in conf_track:
             components_controller.cache_versions()
 
-    def update_all_service():
+    def update_all_service(call):
         """Set up service for manual trigger."""
         if not conf_track or 'cards' in conf_track:
             card_controller.update_all()
@@ -134,7 +133,7 @@ class CustomCards(object):
                 remote_version = card[1]
                 local_version = self.get_local_version(card[0])
                 if local_version:
-                    has_update = (remote_version != False and remote_version != local_version)
+                    has_update = (remote_version != False and remote_version != local_version and remote_version != '')
                     not_local = (remote_version != False and not local_version)
                     self.hass.data[CARD_DATA][name] = {
                         "local": local_version,
@@ -307,8 +306,9 @@ class CustomComponents(object):
     def update_all(self):
         """Update all components"""
         for name in self.hass.data[COMPONENT_DATA]:
-            if name not in ('domain', 'repo'):
+            if name not in ('domain', 'repo', 'hidden'):
                 try:
+                    _LOGGER.debug('Trying to upgrade %s, no update available', name)
                     if self.hass.data[COMPONENT_DATA][name]['has_update'] and not self.hass.data[COMPONENT_DATA][name]['not_local']:
                         self.upgrade_single(name)
                 except KeyError:
