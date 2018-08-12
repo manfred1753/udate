@@ -3,27 +3,6 @@
 A component which allows you to track and update your custom cards and components.\
 **To get the best use for this component, use it together with the [tracker-card](https://github.com/custom-cards/tracker-card)**
 
-## ⚠️ This will **ONLY** work if your components and/or cards/elements is from else add custom url
-
-- https://github.com/custom-cards
-- https://github.com/custom-components
-- https://github.com/ciotlosm/custom-lovelace
-
-***
-
-## ⚠️ See here **if** you have used an earlier version of this
-
-Before  you install this version make sure that you remove these files (if you have them):
-
-- `/custom_components/custom_components.py`
-- `/custom_components/custom_cards.py`
-- `/custom_components/sensor/custom_components.py`
-- `/custom_components/sensor/custom_cards.py`
-
-And remove `custom_components` and `custom_cards` from your `configuration.yaml`
-
-***
-
 ## Installation
 
 ### Step 1
