@@ -14,7 +14,6 @@ from datetime import timedelta
 import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
-from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_time_interval
 
 __version__ = '1.4.1'
@@ -23,6 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_TRACK = 'track'
 CONF_HIDE_SENSOR = 'hide_sensor'
+CONF_CARD_CONFIG_URLS = 'card_urls'
+CONF_COMPONENT_CONFIG_URLS = 'component_urls'
 
 DOMAIN = 'custom_updater'
 CARD_DATA = 'custom_card_data'
@@ -32,29 +33,38 @@ INTERVAL = timedelta(days=1)
 ATTR_CARD = 'card'
 ATTR_COMPONENT = 'component'
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_TRACK, default=None):
-        vol.All(cv.ensure_list, [cv.string]),
-    vol.Optional(CONF_HIDE_SENSOR, default=False): cv.boolean,
-})
+CONFIG_SCHEMA = vol.Schema({
+    DOMAIN: vol.Schema({
+        vol.Optional(CONF_TRACK, default=['cards', 'components']):
+            vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional(CONF_HIDE_SENSOR, default=False): cv.boolean,
+        vol.Optional(CONF_CARD_CONFIG_URLS, default=[]):
+            vol.All(cv.ensure_list, [cv.url]),
+        vol.Optional(CONF_COMPONENT_CONFIG_URLS, default=[]):
+            vol.All(cv.ensure_list, [cv.url]),
+    })
+}, extra=vol.ALLOW_EXTRA)
 
-CARDS_JSON = 'https://raw.githubusercontent.com/custom-cards/information/master/repos.json'
-COMPS_JSON = 'https://raw.githubusercontent.com/custom-components/information/master/repos.json'
+DEFAULT_REMOTE_CARD_CONFIG_URL = 'https://raw.githubusercontent.com/custom-cards/information/master/repos.json'
+DEFAULT_REMOTE_COMPONENT_CONFIG_URL = 'https://raw.githubusercontent.com/custom-components/information/master/repos.json'
 
 
 def setup(hass, config):
     """Set up this component."""
-    conf_track = config.get(CONF_TRACK)
-    conf_hide_sensor = config.get(CONF_HIDE_SENSOR)
+    conf_track = config[DOMAIN][CONF_TRACK]
+    conf_hide_sensor = config[DOMAIN][CONF_HIDE_SENSOR]
+    conf_card_urls = [DEFAULT_REMOTE_CARD_CONFIG_URL] + config[DOMAIN][CONF_CARD_CONFIG_URLS]
+    conf_component_urls = [DEFAULT_REMOTE_COMPONENT_CONFIG_URL] + config[DOMAIN][CONF_COMPONENT_CONFIG_URLS]
+
     _LOGGER.info('version %s is starting, if you have ANY issues with this, please report'
                  ' them here: https://github.com/custom-components/custom_updater', __version__)
 
     ha_conf_dir = str(hass.config.path())
-    if not conf_track or 'cards' in conf_track:
-        card_controller = CustomCards(hass, ha_conf_dir, conf_hide_sensor)
+    if 'cards' in conf_track:
+        card_controller = CustomCards(hass, ha_conf_dir, conf_hide_sensor, conf_card_urls)
         track_time_interval(hass, card_controller.cache_versions, INTERVAL)
-    if not conf_track or 'components' in conf_track:
-        components_controller = CustomComponents(hass, ha_conf_dir, conf_hide_sensor)
+    if 'components' in conf_track:
+        components_controller = CustomComponents(hass, ha_conf_dir, conf_hide_sensor, conf_component_urls)
         track_time_interval(hass, components_controller.cache_versions, INTERVAL)
 
     def check_all_service(call):
@@ -90,10 +100,11 @@ def setup(hass, config):
 
 class CustomCards(object):
     """Custom cards controller."""
-    def __init__(self, hass, ha_conf_dir, conf_hide_sensor):
+    def __init__(self, hass, ha_conf_dir, conf_hide_sensor, conf_card_urls):
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self.ha_conf_dir = ha_conf_dir
+        self.conf_card_urls = conf_card_urls
         self.cards = None
         self._lovelace_gen = False
         self.hass.data[CARD_DATA] = {}
@@ -119,9 +130,9 @@ class CustomCards(object):
         self.cards = self.get_all_remote_info()
         self.hass.data[CARD_DATA] = {}
         if self.cards:
-            for name, data in self.cards.items():
-                remote_version = data[1]
-                local_version = self.get_local_version(data[0])
+            for name, card in self.cards.items():
+                remote_version = card[1]
+                local_version = self.get_local_version(card[0])
                 if local_version:
                     has_update = (remote_version != False and remote_version != local_version)
                     not_local = (remote_version != False and not local_version)
@@ -130,8 +141,8 @@ class CustomCards(object):
                         "remote": remote_version,
                         "has_update": has_update,
                         "not_local": not_local,
-                        "repo": data[3],
-                        "change_log": data[4],
+                        "repo": card[3],
+                        "change_log": card[4],
                     }
                     self.hass.data[CARD_DATA]['domain'] = 'custom_cards'
                     self.hass.data[CARD_DATA]['repo'] = '#'
@@ -209,26 +220,26 @@ class CustomCards(object):
                         break
         return card_dir
 
-    @staticmethod
-    def get_all_remote_info():
+    def get_all_remote_info(self):
         """Return all remote info if any."""
-        response = requests.get(CARDS_JSON)
         remote_info = {}
-        if response.status_code == 200:
-            for name, card in response.json().items():
-                try:
-                    card = [
-                        name,
-                        card['version'],
-                        card['remote_location'],
-                        card['visit_repo'],
-                        card['changelog']
-                    ]
-                    remote_info[name] = card
-                except KeyError:
-                    _LOGGER.debug('Gathering remote info for %s failed...', name)
-        else:
-            _LOGGER.debug('Could not get remote info for url %s', CARDS_JSON)
+        for url in self.conf_card_urls:
+            response = requests.get(url)
+            if response.status_code == 200:
+                for name, card in response.json().items():
+                    try:
+                        card = [
+                            name,
+                            card['version'],
+                            card['remote_location'],
+                            card['visit_repo'],
+                            card['changelog']
+                        ]
+                        remote_info[name] = card
+                    except KeyError:
+                        _LOGGER.debug('Gathering remote info for %s failed...', name)
+            else:
+                _LOGGER.debug('Could not get remote info for url %s', DEFAULT_REMOTE_CARD_CONFIG_URL)
         return remote_info
 
     def get_local_version(self, name):
@@ -259,10 +270,11 @@ class CustomCards(object):
 
 class CustomComponents(object):
     """Custom components controller."""
-    def __init__(self, hass, ha_conf_dir, conf_hide_sensor):
+    def __init__(self, hass, ha_conf_dir, conf_hide_sensor, conf_component_urls):
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self.ha_conf_dir = ha_conf_dir
+        self.conf_component_urls = conf_component_urls
         self.components = None
         self.hass.data[COMPONENT_DATA] = {}
         self.cache_versions()
@@ -327,27 +339,27 @@ class CustomComponents(object):
         else:
             _LOGGER.error('Upgrade failed, "%s" is not a valid component', name)
 
-    @staticmethod
-    def get_all_remote_info():
+    def get_all_remote_info(self):
         """Return all remote info if any."""
-        response = requests.get(COMPS_JSON)
         remote_info = {}
-        if response.status_code == 200:
-            for name, component in response.json().items():
-                try:
-                    component = [
-                        name,
-                        component['version'],
-                        component['local_location'],
-                        component['remote_location'],
-                        component['visit_repo'],
-                        component['changelog']
-                    ]
-                    remote_info[name] = component
-                except KeyError:
-                    _LOGGER.debug('Gathering remote info for %s failed...', name)
-        else:
-            _LOGGER.debug('Could not get remote info for url %s', COMPS_JSON)
+        for url in self.conf_component_urls:
+            response = requests.get(url)
+            if response.status_code == 200:
+                for name, component in response.json().items():
+                    try:
+                        component = [
+                            name,
+                            component['version'],
+                            component['local_location'],
+                            component['remote_location'],
+                            component['visit_repo'],
+                            component['changelog']
+                        ]
+                        remote_info[name] = component
+                    except KeyError:
+                        _LOGGER.debug('Gathering remote info for %s failed...', name)
+            else:
+                _LOGGER.debug('Could not get remote info for url %s', DEFAULT_REMOTE_COMPONENT_CONFIG_URL)
         return remote_info
 
     def get_local_version(self, name, local_path):
