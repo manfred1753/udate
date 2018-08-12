@@ -3,7 +3,7 @@
 A component which allows you to track and update your custom cards and components.\
 **To get the best use for this component, use it together with the [tracker-card](https://github.com/custom-cards/tracker-card)**
 
-## ⚠️ This will **ONLY** work if your components and/or cards/elements is from
+## ⚠️ This will **ONLY** work if your components and/or cards/elements is from else add custom url
 
 - https://github.com/custom-cards
 - https://github.com/custom-components
@@ -45,8 +45,43 @@ custom_updater:
 | --- | --- | --- | ---
 | **track** | both | no | A list of what you want this component to track, possible values are `cards`/`components`
 | **hide_sensor** | False | no | Option to set the sensors to be `hidden`, possible values are `True` / `False`
+| **card_urls** | Empty | no | A list of urls to json with card info
+| **component_urls** | Empty | no | A list of urls to json with component info
 
 ***
+
+### Format of card_urls json
+
+The json can have multiple cards
+
+```json
+{
+    "canvas-gauge-card": {
+      "updated_at": "2018-08-11",
+      "version": "0.0.2",
+      "remote_location": "https://raw.githubusercontent.com/custom-cards/canvas-gauge-card/master/canvas-gauge-card.js",
+      "visit_repo": "https://github.com/custom-cards/canvas-gauge-card",
+      "changelog": "https://github.com/custom-cards/canvas-gauge-card/releases/latest"
+    }
+}
+```
+
+### Format of component_urls json
+
+The json can have multiple components
+
+```json
+{
+    "camera.combined": {
+      "updated_at": "2018-08-08",
+      "version": "0.0.1",
+      "local_location": "/custom_components/camera/combined.py",
+      "remote_location": "https://raw.githubusercontent.com/custom-components/camera.combined/master/custom_components/camera/combined.py",
+      "visit_repo": "https://github.com/custom-components/camera.combined",
+      "changelog": "https://github.com/custom-components/camera.combined/releases/latest"
+    }
+}
+```
 
 ## Activate Debug logging
 
