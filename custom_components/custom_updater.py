@@ -124,6 +124,7 @@ class CustomCards(object):
     """Custom cards controller."""
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_card_urls, config_show_installabe):
+        """Initialize"""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
@@ -253,14 +254,15 @@ class CustomCards(object):
             _LOGGER.info('Successfully upgraded lib for %s', name)
 
     def install(self, card):
-        """install single card."""
+        """Install single card."""
         if card in self.hass.data[CARD_DATA]:
             self.hass.data[CARD_DATA][card]['has_update'] = True
             self.upgrade_single(card, 'manual')
             _LOGGER.info('Successfully installed %s', card)
-            return True
+            retval = True
         else:
-            return False
+            retval = False
+        return retval
 
     def update_resource_version(self, name):
         """Updating the ui-lovelace file."""
@@ -357,6 +359,7 @@ class CustomComponents(object):
     """Custom components controller."""
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_component_urls, config_show_installabe):
+        """Initialize"""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
@@ -449,9 +452,10 @@ class CustomComponents(object):
                     os.mkdir(self.ha_conf_dir + comppath)
             self.upgrade_single(component)
             _LOGGER.info('Successfully installed %s', component)
-            return True
+            retval = True
         else:
-            return False
+            retval = False
+        return retval
 
     def get_all_remote_info(self):
         """Return all remote info if any."""
