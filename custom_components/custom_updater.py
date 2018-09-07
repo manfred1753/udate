@@ -332,7 +332,7 @@ class CustomCards():
     def get_local_version(self, name):
         """Return the local version if any."""
         conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
-        if conf_file.os.isfile():
+        if os.path.isfile(conf_file):
             if self._lovelace_gen:
                 conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
                 with open(conf_file, 'r') as local:
