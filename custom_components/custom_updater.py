@@ -65,14 +65,13 @@ def setup(hass, config):
     _LOGGER.info('if you have ANY issues with this, please report them here:'
                  ' https://github.com/custom-components/custom_updater')
 
-    ha_conf_dir = str(hass.config.path())
     if 'cards' in conf_track:
-        card_controller = CustomCards(hass, ha_conf_dir,
+        card_controller = CustomCards(hass,
                                       conf_hide_sensor, conf_card_urls,
                                       config_show_installabe)
         track_time_interval(hass, card_controller.cache_versions, INTERVAL)
     if 'components' in conf_track:
-        components_controller = CustomComponents(hass, ha_conf_dir,
+        components_controller = CustomComponents(hass,
                                                  conf_hide_sensor,
                                                  conf_component_urls,
                                                  config_show_installabe)
@@ -120,16 +119,16 @@ def setup(hass, config):
     return True
 
 
-class CustomCards(object):
+class CustomCards():
     """Custom cards controller."""
 
-    def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
+    def __init__(self, hass, conf_hide_sensor,
                  conf_card_urls, config_show_installabe):
         """Initialize."""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
-        self.ha_conf_dir = ha_conf_dir
+        self.ha_conf_dir = str(hass.config.path())
         self.conf_card_urls = conf_card_urls
         self.cards = None
         self._lovelace_gen = False
@@ -147,8 +146,7 @@ class CustomCards(object):
         local.close()
         ll_dir = self.ha_conf_dir + '/lovelace'
         if self._lovelace_gen and os.path.isdir(ll_dir):
-            _LOGGER.debug('Found evidence of lovelace-gen useage,' +
-                          ' assuming that is beeing used.')
+            _LOGGER.debug('Found evidence of lovelace-gen useage.')
             self._lovelace_gen = True
         else:
             self._lovelace_gen = False
@@ -356,16 +354,16 @@ class CustomCards(object):
         return False
 
 
-class CustomComponents(object):
+class CustomComponents():
     """Custom components controller."""
 
-    def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
+    def __init__(self, hass, conf_hide_sensor,
                  conf_component_urls, config_show_installabe):
         """Initialize."""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
-        self.ha_conf_dir = ha_conf_dir
+        self.ha_conf_dir = str(hass.config.path())
         self.conf_component_urls = conf_component_urls
         self.components = None
         self.hass.data[COMP_DATA] = {}
