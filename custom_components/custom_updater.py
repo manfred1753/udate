@@ -122,6 +122,7 @@ def setup(hass, config):
 
 class CustomCards(object):
     """Custom cards controller."""
+
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_card_urls, config_show_installabe):
         """Initialize."""
@@ -265,7 +266,7 @@ class CustomCards(object):
         return retval
 
     def update_resource_version(self, name):
-        """Updating the ui-lovelace file."""
+        """Update the ui-lovelace file."""
         local_version = self.hass.data[CARD_DATA][name]['local']
         remote_version = self.hass.data[CARD_DATA][name]['remote']
         _LOGGER.debug('Updating configuration for %s', name)
@@ -357,6 +358,7 @@ class CustomCards(object):
 
 class CustomComponents(object):
     """Custom components controller."""
+
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_component_urls, config_show_installabe):
         """Initialize."""
