@@ -27,7 +27,7 @@ CONF_COMPONENT_CONFIG_URLS = 'component_urls'
 
 DOMAIN = 'custom_updater'
 CARD_DATA = 'custom_card_data'
-COMPONENT_DATA = 'custom_component_data'
+COMP_DATA = 'custom_COMP_DATA'
 INTERVAL = timedelta(days=1)
 
 ATTR_CARD = 'card'
@@ -363,15 +363,15 @@ class CustomComponents(object):
         self.ha_conf_dir = ha_conf_dir
         self.conf_component_urls = conf_component_urls
         self.components = None
-        self.hass.data[COMPONENT_DATA] = {}
+        self.hass.data[COMP_DATA] = {}
         self.cache_versions()
 
     def cache_versions(self):
         """Cache."""
         self.components = self.get_all_remote_info()
-        self.hass.data[COMPONENT_DATA] = {}
-        self.hass.data[COMPONENT_DATA]['domain'] = 'custom_components'
-        self.hass.data[COMPONENT_DATA]['repo'] = '#'
+        self.hass.data[COMP_DATA] = {}
+        self.hass.data[COMP_DATA]['domain'] = 'custom_components'
+        self.hass.data[COMP_DATA]['repo'] = '#'
         if self.components:
             for name, component in self.components.items():
                 remote_version = component[1]
@@ -384,7 +384,7 @@ class CustomComponents(object):
                     has_update = (remote_version and
                                   remote_version != local_version)
                     not_local = (remote_version and not local_version)
-                    self.hass.data[COMPONENT_DATA][name] = {
+                    self.hass.data[COMP_DATA][name] = {
                         "local": local_version,
                         "remote": remote_version,
                         "has_update": has_update,
@@ -393,18 +393,18 @@ class CustomComponents(object):
                         "change_log": component[5],
                     }
                     if self._hide_sensor:
-                        self.hass.data[COMPONENT_DATA]['hidden'] = True
+                        self.hass.data[COMP_DATA]['hidden'] = True
             self.hass.states.set('sensor.custom_component_tracker',
-                                 time.time(), self.hass.data[COMPONENT_DATA])
+                                 time.time(), self.hass.data[COMP_DATA])
 
     def update_all(self):
         """Update all components."""
-        for name in self.hass.data[COMPONENT_DATA]:
+        for name in self.hass.data[COMP_DATA]:
             if name not in ('domain', 'repo', 'hidden'):
                 try:
-                    if (self.hass.data[COMPONENT_DATA][name]['has_update']
+                    if (self.hass.data[COMP_DATA][name]['has_update']
                             and not
-                            self.hass.data[COMPONENT_DATA][name]['not_local']):
+                            self.hass.data[COMP_DATA][name]['not_local']):
                         self.upgrade_single(name)
                 except KeyError:
                     _LOGGER.debug('No update available for %s', name)
@@ -412,8 +412,8 @@ class CustomComponents(object):
     def upgrade_single(self, name):
         """Update one components."""
         _LOGGER.debug('Starting upgrade for "%s".', name)
-        if name in self.hass.data[COMPONENT_DATA]:
-            if self.hass.data[COMPONENT_DATA][name]['has_update']:
+        if name in self.hass.data[COMP_DATA]:
+            if self.hass.data[COMP_DATA][name]['has_update']:
                 remote_info = self.get_all_remote_info()[name]
                 remote_file = remote_info[3]
                 local_file = self.ha_conf_dir + remote_info[2]
@@ -424,16 +424,15 @@ class CustomComponents(object):
                     component_file.close()
                     _LOGGER.info('%s upgrade from %s to %s complete',
                                  name,
-                                 self.hass.data[COMPONENT_DATA][name]['local'],
-                                 self.hass.data[COMPONENT_DATA][name]['remote']
-                                )
-                remote = self.hass.data[COMPONENT_DATA][name]['remote']
-                self.hass.data[COMPONENT_DATA][name]['local'] = remote
-                self.hass.data[COMPONENT_DATA][name]['has_update'] = False
-                self.hass.data[COMPONENT_DATA][name]['not_local'] = False
+                                 self.hass.data[COMP_DATA][name]['local'],
+                                 self.hass.data[COMP_DATA][name]['remote'])
+                remote = self.hass.data[COMP_DATA][name]['remote']
+                self.hass.data[COMP_DATA][name]['local'] = remote
+                self.hass.data[COMP_DATA][name]['has_update'] = False
+                self.hass.data[COMP_DATA][name]['not_local'] = False
                 self.hass.states.set('sensor.custom_component_tracker',
                                      time.time(),
-                                     self.hass.data[COMPONENT_DATA])
+                                     self.hass.data[COMP_DATA])
             else:
                 _LOGGER.debug('No update available for %s', name)
         else:
@@ -442,8 +441,8 @@ class CustomComponents(object):
 
     def install(self, component):
         """install single component."""
-        if component in self.hass.data[COMPONENT_DATA]:
-            self.hass.data[COMPONENT_DATA][component]['has_update'] = True
+        if component in self.hass.data[COMP_DATA]:
+            self.hass.data[COMP_DATA][component]['has_update'] = True
             if '.' in component:
                 comppath = '/custom_components/' + component.split('.')[0]
                 if not os.path.isdir(self.ha_conf_dir + comppath):
