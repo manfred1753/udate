@@ -324,7 +324,7 @@ class CustomCards():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except Exception:
+            except ConnectionError:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
@@ -478,7 +478,7 @@ class CustomComponents():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except Exception:
+            except ConnectionError:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
