@@ -331,27 +331,27 @@ class CustomCards():
 
     def get_local_version(self, name):
         """Return the local version if any."""
-        card_config = ''
-        if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
-            with open(conf_file, 'r') as local:
-                for line in local.readlines():
-                    if name + '.js' in line:
-                        card_config = line
-                        break
-            local.close()
-        else:
-            conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
-            with open(conf_file, 'r') as local:
-                for line in local.readlines():
-                    if '/' + name + '.js' in line:
-                        card_config = line
-                        break
-            local.close()
-        if '=' in card_config:
-            local_version = card_config.split('=')[1].split('\n')[0]
-            _LOGGER.debug('Local version of %s is %s', name, local_version)
-            return local_version
+        conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
+        if conf_file.os.isfile():
+            if self._lovelace_gen:
+                conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
+                with open(conf_file, 'r') as local:
+                    for line in local.readlines():
+                        if name + '.js' in line:
+                            card_config = line
+                            break
+                local.close()
+            else:
+                with open(conf_file, 'r') as local:
+                    for line in local.readlines():
+                        if '/' + name + '.js' in line:
+                            card_config = line
+                            break
+                local.close()
+            if '=' in card_config:
+                local_version = card_config.split('=')[1].split('\n')[0]
+                _LOGGER.debug('Local version of %s is %s', name, local_version)
+                return local_version
         return False
 
 
