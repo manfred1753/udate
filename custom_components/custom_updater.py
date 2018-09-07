@@ -94,7 +94,7 @@ def setup(hass, config):
             components_controller.update_all()
 
     def install_service(call):
-        """install single component/card."""
+        """Install single component/card."""
         element = call.data.get(ATTR_ELEMENT)
         _LOGGER.debug('Installing %s', element)
         card_controller.install(element)
@@ -124,7 +124,7 @@ class CustomCards(object):
     """Custom cards controller."""
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_card_urls, config_show_installabe):
-        """Initialize"""
+        """Initialize."""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
@@ -359,7 +359,7 @@ class CustomComponents(object):
     """Custom components controller."""
     def __init__(self, hass, ha_conf_dir, conf_hide_sensor,
                  conf_component_urls, config_show_installabe):
-        """Initialize"""
+        """Initialize."""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
         self._config_show_installabe = config_show_installabe
@@ -443,7 +443,7 @@ class CustomComponents(object):
                           name)
 
     def install(self, component):
-        """install single component."""
+        """Install single component."""
         if component in self.hass.data[COMP_DATA]:
             self.hass.data[COMP_DATA][component]['has_update'] = True
             if '.' in component:
