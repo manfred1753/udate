@@ -325,12 +325,13 @@ class CustomCards():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except ConnectionError:
+            except requests.exceptions.RequestException:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
     def get_local_version(self, name):
         """Return the local version if any."""
+        card_config = ''
         conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
         if os.path.isfile(conf_file):
             if self._lovelace_gen:
@@ -479,7 +480,7 @@ class CustomComponents():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except ConnectionError:
+            except requests.exceptions.RequestException:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
