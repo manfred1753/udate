@@ -129,11 +129,12 @@ class CustomCards():
         """Initialize."""
         self.hass = hass
         self._hide_sensor = conf_hide_sensor
-        self._config_show_installabe = config_show_installabe
+        self._config_show_installable = config_show_installabe
         self.ha_conf_dir = str(hass.config.path())
         self.conf_card_urls = conf_card_urls
         self.cards = None
         self._lovelace_gen = self.get_lovelace_gen()
+        self._conf_file_path = self.get_conf_file_path()
         self.hass.data[CARD_DATA] = {}
         self.cache_versions()
 
@@ -163,7 +164,7 @@ class CustomCards():
             for name, card in self.cards.items():
                 remote_version = card[1]
                 local_version = self.get_local_version(card[0])
-                if self._config_show_installabe:
+                if self._config_show_installable:
                     show = remote_version
                 else:
                     show = local_version
