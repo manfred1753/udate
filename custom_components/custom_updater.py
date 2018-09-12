@@ -428,7 +428,7 @@ class CustomComponents():
             if self.hass.data[COMP_DATA][name]['has_update']:
                 remote_info = self.get_all_remote_info()[name]
                 remote_file = remote_info[3]
-                local_file = self.ha_conf_dir + remote_info[2]
+                local_file = os.path.join(self.ha_conf_dir, remote_info[2])
                 test_remote_file = requests.get(remote_file)
                 if test_remote_file.status_code == 200:
                     try:
@@ -459,9 +459,9 @@ class CustomComponents():
         if component in self.hass.data[COMP_DATA]:
             self.hass.data[COMP_DATA][component]['has_update'] = True
             if '.' in component:
-                comppath = '/custom_components/' + component.split('.')[0]
-                if not os.path.isdir(self.ha_conf_dir + comppath):
-                    os.mkdir(self.ha_conf_dir + comppath)
+                component_path = os.path.join(self.ha_conf_dir, 'custom_components', component.split('.')[0])
+                if not os.path.isdir(component_path):
+                    os.mkdir(component_path)
             self.upgrade_single(component)
             _LOGGER.info('Successfully installed %s', component)
             return True
@@ -477,10 +477,16 @@ class CustomComponents():
                 if response.status_code == 200:
                     for name, component in response.json().items():
                         try:
+                            local_location = component['local_location']\
+                                .replace('/', os.path.sep)\
+                                .replace('\\', os.path.sep)
+                            if local_location.startswith(os.path.sep):
+                                local_location = local_location[1:]
+
                             component = [
                                 name,
                                 component['version'],
-                                component['local_location'],
+                                local_location,
                                 component['remote_location'],
                                 component['visit_repo'],
                                 component['changelog']
@@ -495,7 +501,7 @@ class CustomComponents():
 
     def get_local_version(self, name, local_path):
         """Return the local version if any."""
-        component_path = self.ha_conf_dir + local_path
+        component_path = os.path.join(self.ha_conf_dir, local_path)
         if os.path.isfile(component_path):
             with open(component_path, 'r') as local:
                 pattern = re.compile("^__version__\s*=\s*['\"](.*)['\"]$")
