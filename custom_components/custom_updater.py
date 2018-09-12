@@ -7,6 +7,7 @@ https://github.com/custom-components/custom_updater
 
 import logging
 import os
+import re
 import subprocess
 import time
 from datetime import timedelta
@@ -14,6 +15,7 @@ from datetime import timedelta
 import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
+import yaml
 from homeassistant.helpers.event import track_time_interval
 from requests import RequestException
 
@@ -332,29 +334,37 @@ class CustomCards():
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
+    def get_conf_file_path(self):
+        """Get conf file"""
+        if self._lovelace_gen:
+            return os.path.join(self.ha_conf_dir, 'lovelace', 'main.yaml')
+        else:
+            return os.path.join(self.ha_conf_dir, 'ui-lovelace.yaml')
+
+    def get_resources(self):
+        """Get resources"""
+        with open(self._conf_file_path, 'r') as local:
+            content = yaml.safe_load(local)
+            if content['resources'] is not None:
+                resources = []
+                for tuples in content['resources']:
+                    resource = {}
+                    for key, value in tuples.items():
+                        resource.setdefault(key, value)
+                    resources.append(resource)
+                return resources
+
     def get_local_version(self, name):
         """Return the local version if any."""
-        card_config = ''
-        conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
-        if os.path.isfile(conf_file):
-            if self._lovelace_gen:
-                conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
-                with open(conf_file, 'r') as local:
-                    for line in local.readlines():
-                        if name + '.js' in line:
-                            card_config = line
-                            break
-            else:
-                with open(conf_file, 'r') as local:
-                    for line in local.readlines():
-                        if '/' + name + '.js' in line:
-                            card_config = line
-                            break
-            if '=' in card_config:
-                local_version = card_config.split('=')[1].split('\n')[0]
-                _LOGGER.debug('Local version of %s is %s', name, local_version)
-                return local_version
-        return False
+        resources = self.get_resources()
+        if resources is not None:
+            pattern = re.compile("^.*/" + name + r"\.js\?v=(.*)$")
+            for resource in resources:
+                if resource['url'] is not None:
+                    matcher = pattern.match(resource['url'])
+                    if matcher:
+                        _LOGGER.debug('Local version of %s is %s', name, matcher.group(1))
+                        return matcher.group(1)
 
 
 class CustomComponents():
