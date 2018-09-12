@@ -468,6 +468,16 @@ class CustomComponents():
             self.upgrade_single(component)
             _LOGGER.info('Successfully installed %s', component)
 
+    @staticmethod
+    def _normalize_path(path):
+        path = path.replace('/', os.path.sep)\
+            .replace('\\', os.path.sep)
+
+        if path.startswith(os.path.sep):
+            path = path[1:]
+
+        return path
+
     def get_all_remote_info(self):
         """Return all remote info if any."""
         remote_info = {}
@@ -477,16 +487,11 @@ class CustomComponents():
                 if response.status_code == 200:
                     for name, component in response.json().items():
                         try:
-                            local_location = component['local_location']\
-                                .replace('/', os.path.sep)\
-                                .replace('\\', os.path.sep)
-                            if local_location.startswith(os.path.sep):
-                                local_location = local_location[1:]
-
                             component = [
                                 name,
                                 component['version'],
-                                local_location,
+                                self._normalize_path(
+                                    component['local_location']),
                                 component['remote_location'],
                                 component['visit_repo'],
                                 component['changelog']
