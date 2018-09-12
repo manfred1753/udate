@@ -10,10 +10,12 @@ import os
 import subprocess
 import time
 from datetime import timedelta
+
+import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import track_time_interval
+from requests import RequestException
 
 __version__ = '2.5.0'
 
@@ -325,7 +327,7 @@ class CustomCards():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except requests.exceptions.RequestException:
+            except RequestException:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
