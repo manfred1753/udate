@@ -7,6 +7,7 @@ https://github.com/custom-components/custom_updater
 
 import logging
 import os
+import re
 import subprocess
 import time
 from datetime import timedelta
@@ -494,19 +495,15 @@ class CustomComponents():
 
     def get_local_version(self, name, local_path):
         """Return the local version if any."""
-        local_version = None
         component_path = self.ha_conf_dir + local_path
         if os.path.isfile(component_path):
             with open(component_path, 'r') as local:
+                pattern = re.compile("^__version__\s*=\s*['\"](.*)['\"]$")
                 for line in local.readlines():
-                    if '__version__' in line:
-                        local_version = line.split("'")[1]
-                        break
-            if not local_version:
-                _LOGGER.debug('Could not get the local version for %s', name)
-                return False
-            else:
-                _LOGGER.debug('Local version of %s is %s', name, local_version)
-                return local_version
+                    matcher = pattern.match(line)
+                    if matcher:
+                        _LOGGER.debug('Local version of %s is %s', name, matcher.group(1))
+                        return matcher.group(1)
         else:
+            _LOGGER.debug('Could not get the local version for %s', name)
             return False
