@@ -10,10 +10,12 @@ import os
 import subprocess
 import time
 from datetime import timedelta
+
+import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import track_time_interval
+from requests import RequestException
 
 __version__ = '2.5.0'
 
@@ -412,9 +414,8 @@ class CustomComponents():
         for name in self.hass.data[COMP_DATA]:
             if name not in ('domain', 'repo', 'hidden'):
                 try:
-                    if (self.hass.data[COMP_DATA][name]['has_update']
-                            and not
-                            self.hass.data[COMP_DATA][name]['not_local']):
+                    if (self.hass.data[COMP_DATA][name]['has_update'] and
+                            not self.hass.data[COMP_DATA][name]['not_local']):
                         self.upgrade_single(name)
                 except KeyError:
                     _LOGGER.debug('No update available for %s', name)
@@ -462,10 +463,9 @@ class CustomComponents():
                     os.mkdir(self.ha_conf_dir + comppath)
             self.upgrade_single(component)
             _LOGGER.info('Successfully installed %s', component)
-            retval = True
+            return True
         else:
-            retval = False
-        return retval
+            return False
 
     def get_all_remote_info(self):
         """Return all remote info if any."""
@@ -488,7 +488,7 @@ class CustomComponents():
                         except KeyError:
                             _LOGGER.debug('Could not get remote info for %s',
                                           name)
-            except requests.exceptions.RequestException:
+            except RequestException:
                 _LOGGER.debug('Could not get remote info for url "%s"', url)
         return remote_info
 
@@ -502,13 +502,11 @@ class CustomComponents():
                     if '__version__' in line:
                         local_version = line.split("'")[1]
                         break
-            local.close()
             if not local_version:
-                local_v = False
                 _LOGGER.debug('Could not get the local version for %s', name)
+                return False
             else:
-                local_v = local_version
                 _LOGGER.debug('Local version of %s is %s', name, local_version)
+                return local_version
         else:
-            local_v = False
-        return local_v
+            return False
