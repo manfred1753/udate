@@ -458,8 +458,9 @@ class CustomComponents():
         """Install single component."""
         if component in self.hass.data[COMP_DATA]:
             self.hass.data[COMP_DATA][component]['has_update'] = True
-            if '.' in component:
-                component_path = os.path.join(self.ha_conf_dir, 'custom_components', component.split('.')[0])
+            matcher = re.compile("^(.*)\..*$").match(component)
+            if matcher:
+                component_path = os.path.join(self.ha_conf_dir, 'custom_components', matcher.group(1))
                 if not os.path.isdir(component_path):
                     os.mkdir(component_path)
             self.upgrade_single(component)
