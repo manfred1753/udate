@@ -286,29 +286,35 @@ class CustomCards():
                       name + '.js?v=' + str(remote_version) + '/')
         subprocess.call(["sed", "-i", "-e", sedcmd, conf_file])
 
+    @staticmethod
+    def _normalize_path(path):
+        path = path.replace('/', os.path.sep) \
+            .replace('\\', os.path.sep)
+
+        if path.startswith(os.path.sep):
+            path = path[1:]
+
+        return path
+
     def get_card_dir(self, name):
-        """Get card dir."""
-        if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
-        else:
-            conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
-        with open(conf_file, 'r') as local:
-            for line in local.readlines():
-                if self._lovelace_gen:
-                    if name + '.js' in line:
-                        card = line.split('!resource ')[1].split(name + '.js')
-                        card_dir = '/lovelace/' + card[0]
-                        _LOGGER.debug('Found path "%s" for card "%s"',
-                                      card_dir, name)
-                        break
-                else:
-                    if '/' + name + '.js' in line:
-                        card = line.split(': ')[1].split(name + '.js')
-                        card_dir = card[0].replace("local", "www")
-                        _LOGGER.debug('Found path "%s" for card "%s"',
-                                      card_dir, name)
-                        break
-        return card_dir
+        """Return card dir if any."""
+        resources = self.get_resources()
+        if resources is not None:
+            if self._lovelace_gen:
+                extra = "lovelace"
+                pattern = re.compile(r"^!resource\s(.*)/" + name + r"\.js(\?v=.*)?$")
+            else:
+                extra = ""
+                pattern = re.compile("^(.*)/" + name + "\.js\?v=.*$")
+            for resource in resources:
+                if resource['url'] is not None:
+                    matcher = pattern.match(resource['url'])
+                    if matcher:
+                        card_js_path = self._normalize_path(matcher.group(1))\
+                            .replace("local", "www")
+                        card_dir = os.path.join(extra, card_js_path)
+                        _LOGGER.debug('Found path "%s" for card "%s"', extra, name)
+                        return card_dir
 
     def get_all_remote_info(self):
         """Return all remote info if any."""
