@@ -19,7 +19,7 @@ import yaml
 from homeassistant.helpers.event import track_time_interval
 from requests import RequestException
 
-__version__ = '2.5.0'
+__version__ = '2.5.1'
 
 _LOGGER = logging.getLogger(__name__)
 
