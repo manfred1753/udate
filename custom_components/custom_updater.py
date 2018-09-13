@@ -4,11 +4,12 @@ A component which allows you to update your custom cards and components.
 For more details about this component, please refer to the documentation at
 https://github.com/custom-components/custom_updater
 """
-
+import fileinput
 import logging
 import os
 import re
 import subprocess
+import sys
 import time
 from datetime import timedelta
 
@@ -205,15 +206,18 @@ class CustomCards():
                     remote_info = self.get_all_remote_info()[name]
                     remote_file = remote_info[2]
                     if method == 'auto':
-                        local_file = (self.ha_conf_dir +
-                                      self.get_card_dir(name) + name + '.js')
+                        local_file = os.path.join(self.ha_conf_dir,
+                                                  self.get_card_dir(name),
+                                                  name + '.js')
                     else:
                         if self._lovelace_gen:
-                            local_file = (self.ha_conf_dir +
-                                          '/lovelace/' + name + '.js')
+                            local_file = os.path.join(self.ha_conf_dir,
+                                                      'lovelace',
+                                                      name + '.js')
                         else:
-                            local_file = (self.ha_conf_dir + '/www/' + name +
-                                          '.js')
+                            local_file = os.path.join(self.ha_conf_dir,
+                                                      'www',
+                                                      name + '.js')
                     test_remote_file = requests.get(remote_file)
                     if test_remote_file.status_code == 200:
                         with open(local_file, 'wb') as card_file:
@@ -245,13 +249,18 @@ class CustomCards():
         remote_info = self.get_all_remote_info()[name]
         remote_file = remote_info[2][:-3] + '.lib.js'
         if method == 'auto':
-            local_file = (self.ha_conf_dir +
-                          self.get_card_dir(name) + name + '.lib.js')
+            local_file = os.path.join(self.ha_conf_dir,
+                                      self.get_card_dir(name),
+                                      name + '.lib.js')
         else:
             if self._lovelace_gen:
-                local_file = self.ha_conf_dir + '/lovelace/' + name + '.lib.js'
+                local_file = os.path.join(self.ha_conf_dir,
+                                          'lovelace',
+                                          name + '.lib.js')
             else:
-                local_file = self.ha_conf_dir + '/www/' + name + '.lib.js'
+                local_file = os.path.join(self.ha_conf_dir,
+                                          'www',
+                                          name + '.lib.js')
         test_remote_file = requests.get(remote_file)
         if test_remote_file.status_code == 200:
             with open(local_file, 'wb') as card_file:
@@ -269,22 +278,37 @@ class CustomCards():
             retval = False
         return retval
 
+    @staticmethod
+    def replace_all(file, search, replace):
+        for line in fileinput.input(file, inplace=True):
+            if search in line:
+                line = line.replace(search, replace)
+            sys.stdout.write(line)
+
     def update_resource_version(self, name):
-        """Update the ui-lovelace file."""
+        """Updating the ui-lovelace file"""
         local_version = self.hass.data[CARD_DATA][name]['local']
         remote_version = self.hass.data[CARD_DATA][name]['remote']
         _LOGGER.debug('Updating configuration for %s', name)
         _LOGGER.debug('Upgrading card in config from version %s to version %s',
                       local_version, remote_version)
-        if self._lovelace_gen:
-            conf_file = self.ha_conf_dir + '/lovelace/main.yaml'
-            sedcmd = ('s/' + name + '.js?v=' + str(local_version) + '/' +
-                      name + '.js?v=' + str(remote_version) + '/')
-        else:
-            conf_file = self.ha_conf_dir + '/ui-lovelace.yaml'
-            sedcmd = ('s/' + name + '.js?v=' + str(local_version) + '/' +
-                      name + '.js?v=' + str(remote_version) + '/')
-        subprocess.call(["sed", "-i", "-e", sedcmd, conf_file])
+        resource_path = self.get_resource_path()
+        print('resource_file', resource_path)
+        self.replace_all(
+            resource_path,
+            '{}.js?v={}'.format(name, local_version),
+            '{}.js?v={}'.format(name, remote_version))
+
+    def get_resource_path(self):
+        """Get resource file"""
+        with open(self._conf_file_path, 'r') as local:
+            pattern = re.compile(r"^resources:\s!include\s(.*)$")
+            for line in local.readlines():
+                matcher = pattern.match(line)
+                if matcher:
+                    resource_path = self._normalize_path(matcher.group(1))
+                    return os.path.join(self.ha_conf_dir, resource_path)
+        return self._conf_file_path
 
     @staticmethod
     def _normalize_path(path):
