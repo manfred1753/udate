@@ -18,7 +18,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import track_time_interval
 import yaml
 
-__version__ = '2.7.2'
+__version__ = '2.7.3'
 
 _LOGGER = logging.getLogger(__name__)
 
