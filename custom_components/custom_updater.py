@@ -49,6 +49,9 @@ CONFIG_SCHEMA = vol.Schema({
 
 def setup(hass, config):
     """Set up this component."""
+    card_controller = None
+    components_controller = None
+    python_scripts_controller = None
     conf_track = config[DOMAIN][CONF_TRACK]
     conf_hide_sensor = config[DOMAIN][CONF_HIDE_SENSOR]
     config_show_installabe = config[DOMAIN][CONF_SHOW_INSTALLABLE]
@@ -101,9 +104,12 @@ def setup(hass, config):
         """Install single component/card."""
         element = call.data.get(ATTR_ELEMENT)
         _LOGGER.debug('Installing %s', element)
-        card_controller.install(element)
-        components_controller.install(element)
-        python_scripts_controller.install(element)
+        if 'cards' in conf_track:
+            card_controller.install(element)
+        if 'components' in conf_track:
+            components_controller.install(element)
+        if 'python_scripts' in conf_track:
+            python_scripts_controller.install(element)
 
     hass.services.register(DOMAIN, 'check_all', check_all_service)
     hass.services.register(DOMAIN, 'update_all', update_all_service)
