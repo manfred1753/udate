@@ -312,9 +312,7 @@ class CustomCardsView(HomeAssistantView):
                 path=path)
             _LOGGER.debug(msg)
             resp = web.FileResponse(file)
-            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
-            resp.headers["Pragma"] = "no-cache"
-            resp.headers["Expires"] = "0"
+            resp.headers["Cache-Control"] = "max-age=0, must-revalidate"
             return resp
         else:
             _LOGGER.error("Tried to serve up '%s' but it does not exist", file)
