@@ -2,7 +2,7 @@
 
 _A component which allows you to track and update custom cards/components and python_scripts._ 
 
-## `5.5.5` Causes major breaking changes
+## `5.0.0` Causes major breaking changes
 this is due to the restructuring to suit Home Assistant's "Great Migration" at version 0.92
 
 ### This component has been disabled from updating itself for a while due to this change, I will add this back at a later time
